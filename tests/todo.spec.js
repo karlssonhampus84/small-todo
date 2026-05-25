@@ -59,3 +59,68 @@ test('todos finns kvar efter reload (localStorage)', async ({ page }) => {
 
   await expect(page.getByText('Persistent uppgift')).toBeVisible()
 })
+
+test('togglar prioritet och visar ! i accent-färg', async ({ page }) => {
+  await page.getByTestId('todo-input').fill('Brådskande uppgift')
+  await page.keyboard.press('Enter')
+
+  const btn = page.getByTestId('priority-btn')
+  await expect(btn).toHaveText('·')
+  await expect(btn).not.toHaveClass(/active/)
+
+  await btn.click()
+
+  await expect(btn).toHaveText('!')
+  await expect(btn).toHaveClass(/active/)
+})
+
+test('brådskande todo sorteras före normal todo', async ({ page }) => {
+  await page.getByTestId('todo-input').fill('Normal')
+  await page.keyboard.press('Enter')
+
+  await page.getByTestId('todo-input').fill('Brådskande')
+  await page.keyboard.press('Enter')
+
+  // Markera den nyast tillagda (Brådskande) som prioritet
+  await page.getByTestId('priority-btn').first().click()
+
+  const items = page.locator('.todo-item')
+  await expect(items.first()).toContainText('Brådskande')
+})
+
+test('lägger till todo med deadline och visar chip', async ({ page }) => {
+  await page.getByTestId('calendar-btn').click()
+  await page.getByTestId('deadline-input').fill('2030-12-31')
+  await page.getByTestId('todo-input').fill('Framtida uppgift')
+  await page.keyboard.press('Enter')
+
+  await expect(page.getByTestId('deadline-chip')).toBeVisible()
+  await expect(page.getByTestId('deadline-chip')).toContainText('31 dec')
+})
+
+test('tar bort deadline via × i chip', async ({ page }) => {
+  await page.getByTestId('calendar-btn').click()
+  await page.getByTestId('deadline-input').fill('2030-12-31')
+  await page.getByTestId('todo-input').fill('Uppgift med datum')
+  await page.keyboard.press('Enter')
+
+  await expect(page.getByTestId('deadline-chip')).toBeVisible()
+
+  await page.getByTestId('deadline-chip').hover()
+  await page.locator('.deadline-remove').click()
+
+  await expect(page.getByTestId('deadline-chip')).not.toBeVisible()
+})
+
+test('priority och deadline finns kvar efter reload', async ({ page }) => {
+  await page.getByTestId('calendar-btn').click()
+  await page.getByTestId('deadline-input').fill('2030-06-15')
+  await page.getByTestId('todo-input').fill('Persistent med extras')
+  await page.keyboard.press('Enter')
+  await page.getByTestId('priority-btn').click()
+
+  await page.reload()
+
+  await expect(page.getByTestId('priority-btn')).toHaveClass(/active/)
+  await expect(page.getByTestId('deadline-chip')).toBeVisible()
+})

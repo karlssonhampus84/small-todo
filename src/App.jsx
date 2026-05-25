@@ -3,7 +3,7 @@ import TodoInput from './components/TodoInput.jsx'
 import TodoList from './components/TodoList.jsx'
 
 export default function App() {
-  const { todos, addTodo, toggleTodo, deleteTodo } = useTodos()
+  const { todos, addTodo, toggleTodo, deleteTodo, setPriority, setDeadline } = useTodos()
   const remaining = todos.filter(t => !t.done).length
 
   return (
@@ -17,7 +17,13 @@ export default function App() {
         </span>
       </header>
       <TodoInput onAdd={addTodo} />
-      <TodoList todos={todos} onToggle={toggleTodo} onDelete={deleteTodo} />
+      <TodoList
+        todos={todos}
+        onToggle={toggleTodo}
+        onDelete={deleteTodo}
+        onSetPriority={setPriority}
+        onSetDeadline={setDeadline}
+      />
     </div>
   )
 }
